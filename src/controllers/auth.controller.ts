@@ -4,7 +4,8 @@ import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
 import { OAuth2Client } from 'google-auth-library';
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const googleClientId = process.env.GOOGLE_CLIENT_ID || '5819473927-1qek5cqr5irkou22bs8n7u9lebgejq45.apps.googleusercontent.com';
+const client = new OAuth2Client(googleClientId);
 
 const generateToken = (id: string) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'secret', { expiresIn: '30d' });
@@ -47,7 +48,7 @@ export const googleAuth = async (req: Request, res: Response) => {
         const { idToken } = req.body;
         const ticket = await client.verifyIdToken({
             idToken,
-            audience: process.env.GOOGLE_CLIENT_ID
+            audience: googleClientId
         });
         const payload = ticket.getPayload();
         if(!payload) return res.status(400).json({message: 'Invalid google token'});
