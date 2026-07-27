@@ -31,3 +31,21 @@ export const chatWithGemini = async (
   const response = result.response;
   return response.text();
 };
+
+export const streamChatWithGemini = async (
+  message: string,
+  history: Array<{ role: string; content: string }> = []
+) => {
+  const model = getModel();
+
+  const formattedHistory = history.map((msg) => ({
+    role: msg.role === 'user' ? 'user' as const : 'model' as const,
+    parts: [{ text: msg.content }],
+  }));
+
+  const chat = model.startChat({
+    history: formattedHistory,
+  });
+
+  return await chat.sendMessageStream(message);
+};

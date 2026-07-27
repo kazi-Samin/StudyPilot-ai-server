@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { generateContent, chatWithGemini } from '../services/gemini.service';
+import { generateContent, chatWithGemini, streamChatWithGemini } from '../services/gemini.service';
 
 export const getRecommendations = async (req: Request, res: Response) => {
   try {
@@ -96,5 +96,35 @@ export const chat = async (req: Request, res: Response) => {
   } catch (error: any) { 
     console.error('AI Chat Error:', error);
     res.status(500).json({ message: error.message }); 
+  }
+};
+
+export const streamChat = async (req: Request, res: Response) => {
+  try {
+    const { message, history } = req.body;
+
+    const formattedHistory = (history || []).map((msg: any) => ({
+      role: msg.role || 'user',
+      content: msg.parts?.[0]?.text || msg.content || ''
+    }));
+
+    // Set headers for Server-Sent Events
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    const resultStream = await streamChatWithGemini(message, formattedHistory);
+
+    for await (const chunk of resultStream.stream) {
+      const chunkText = chunk.text();
+      res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+    }
+
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } catch (error: any) {
+    console.error('AI Stream Chat Error:', error);
+    res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
+    res.end();
   }
 };
