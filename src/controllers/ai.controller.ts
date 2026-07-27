@@ -93,5 +93,8 @@ export const chat = async (req: Request, res: Response) => {
     } catch (e) { /* ignore suggestions error */ }
 
     res.json({ response: responseText, suggestions });
-  } catch (error: any) { res.status(500).json({ message: error.message }); }
+  } catch (error: any) { 
+    console.error('AI Chat Error:', error);
+    res.status(500).json({ message: error.message }); 
+  }
 };

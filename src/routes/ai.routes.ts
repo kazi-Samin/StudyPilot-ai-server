@@ -5,6 +5,6 @@ import { protect } from '../middleware/auth.middleware';
 const router = Router();
 router.post('/recommendations', protect, getRecommendations);
 router.post('/generate-plan', protect, generatePlan);
-router.post('/chat', protect, chat);
+router.post('/chat', chat);
 
 export default router;
